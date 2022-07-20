@@ -23,7 +23,7 @@ func (r *AuthPostgres) CreateUser(user shop.User) (int, error) {
 
 	var id int
 
-	createQueryUser := `INSERT INTO users (name, username, password_hash) values ($1, $2, $3) RETURNING id`
+	createQueryUser := fmt.Sprintf("INSERT INTO %s (name, username, password_hash) values ($1, $2, $3) RETURNING id", "users")
 
 	row := tx.QueryRow(createQueryUser, user.Name, user.Username, user.Password)
 	if err := row.Scan(&id); err != nil {
@@ -31,7 +31,7 @@ func (r *AuthPostgres) CreateUser(user shop.User) (int, error) {
 		return 0, err
 	}
 
-	createQueryBasket := fmt.Sprintf("INSERT INTO baskets (user_id) values ($1) RETURNING id")
+	createQueryBasket := fmt.Sprintf("INSERT INTO %s (user_id) values ($1) RETURNING id", "baskets")
 	_, err = tx.Exec(createQueryBasket, id)
 	if err != nil {
 		tx.Rollback()
@@ -43,7 +43,7 @@ func (r *AuthPostgres) CreateUser(user shop.User) (int, error) {
 
 func (r *AuthPostgres) GetUser(username, password string) (shop.User, error) {
 	var user shop.User
-	query := fmt.Sprintf("SELECT id FROM users WHERE username=$1 AND password_hash=$2")
+	query := fmt.Sprintf("SELECT id FROM %s WHERE username=$1 AND password_hash=$2", "users")
 	err := r.db.Get(&user, query, username, password)
 	return user, err
 }

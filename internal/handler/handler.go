@@ -22,5 +22,14 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		auth.POST("/sing-in", h.signIn)
 	}
 
+	item := router.Group("/item", h.userIdentity)
+	{
+		item.POST("/", h.createItem)
+		item.GET("/", h.getAllItems)
+		item.GET("/:id", h.getItemById)
+		item.DELETE("/:id", h.deleteItem)
+		item.PUT("/:id", h.updateItem)
+	}
+
 	return router
 }
