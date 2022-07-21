@@ -31,5 +31,12 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		item.PUT("/:id", h.updateItem)
 	}
 
+	basket := router.Group("/basket", h.userIdentity)
+	{
+		basket.POST("/:id", h.addToBasket)
+		basket.GET("/", h.getBasketItems)
+		basket.DELETE("/:id", h.deleteBasketItem)
+	}
+
 	return router
 }

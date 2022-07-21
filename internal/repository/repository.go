@@ -18,14 +18,22 @@ type Item interface {
 	UpdateItem(input shop.ItemUpdateInput, id int) error
 }
 
+type Basket interface {
+	AddToBasket(userId, itemId int) (int, error)
+	DeleteBasketItem(itemId int) error
+	GetBasketItems(userId int) ([]shop.Item, error)
+}
+
 type Repository struct {
 	Authorization
 	Item
+	Basket
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
 		Item:          NewItemPostgres(db),
+		Basket:        NewBasketPostgres(db),
 	}
 }

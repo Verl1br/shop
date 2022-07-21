@@ -19,14 +19,22 @@ type Item interface {
 	UpdateItem(input shop.ItemUpdateInput, id int) error
 }
 
+type Basket interface {
+	AddToBasket(userId, itemId int) (int, error)
+	DeleteBasketItem(itemId int) error
+	GetBasketItems(userId int) ([]shop.Item, error)
+}
+
 type Service struct {
 	Authorization
 	Item
+	Basket
 }
 
 func NewService(repo *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthService(repo),
 		Item:          NewItemService(repo),
+		Basket:        NewBasketService(repo),
 	}
 }
