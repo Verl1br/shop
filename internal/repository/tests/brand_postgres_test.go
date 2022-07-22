@@ -1,23 +1,26 @@
 package repository
 
 import (
+	"database/sql"
 	"testing"
 
+	"github.com/dhevve/shop"
+	"github.com/dhevve/shop/internal/repository"
 	"github.com/stretchr/testify/assert"
 	sqlmock "github.com/zhashkevych/go-sqlxmock"
 )
 
-func TestBasketPostgres_AddToBasket(t *testing.T) {
+func TestBrandPostgres_AddBrand(t *testing.T) {
 	db, mock, err := sqlmock.Newx()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
 
-	r := NewBasketPostgres(db)
+	r := repository.NewBrandPostgres(db)
 
 	type args struct {
-		userId, itemId int
+		item shop.Brand
 	}
 
 	type mockBehavior func(args args, id int)
@@ -32,14 +35,15 @@ func TestBasketPostgres_AddToBasket(t *testing.T) {
 		{
 			name: "Ok",
 			input: args{
-				userId: 1,
-				itemId: 1,
+				item: shop.Brand{
+					Name: "test brand",
+				},
 			},
 			want: 1,
 			mock: func(args args, id int) {
 				rows := sqlmock.NewRows([]string{"id"}).AddRow(id)
-				mock.ExpectQuery("INSERT INTO basket_item").
-					WithArgs(args.userId, args.itemId).WillReturnRows(rows)
+				mock.ExpectQuery("INSERT INTO brand").
+					WithArgs(args.item.Name).WillReturnRows(rows)
 			},
 		},
 	}
@@ -48,7 +52,7 @@ func TestBasketPostgres_AddToBasket(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mock(tt.input, tt.want)
 
-			got, err := r.AddToBasket(tt.input.userId, tt.input.itemId)
+			got, err := r.AddBrand(tt.input.item)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -60,17 +64,17 @@ func TestBasketPostgres_AddToBasket(t *testing.T) {
 	}
 }
 
-func TestBasketPostgres_DeleteBasketItem(t *testing.T) {
+func TestBrandPostgres_Delete(t *testing.T) {
 	db, mock, err := sqlmock.Newx()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
 
-	r := NewBasketPostgres(db)
+	r := repository.NewBrandPostgres(db)
 
 	type args struct {
-		itemId int
+		id int
 	}
 
 	tests := []struct {
@@ -82,12 +86,23 @@ func TestBasketPostgres_DeleteBasketItem(t *testing.T) {
 		{
 			name: "Ok",
 			mock: func() {
-				mock.ExpectExec("DELETE FROM basket_item WHERE (.+)").
+				mock.ExpectExec("DELETE FROM brand WHERE (.+)").
 					WithArgs(1).WillReturnResult(sqlmock.NewResult(0, 1))
 			},
 			input: args{
-				itemId: 1,
+				id: 1,
 			},
+		},
+		{
+			name: "Not Found",
+			mock: func() {
+				mock.ExpectExec("DELETE FROM brand WHERE (.+)").
+					WithArgs(404).WillReturnError(sql.ErrNoRows)
+			},
+			input: args{
+				id: 404,
+			},
+			wantErr: true,
 		},
 	}
 
@@ -95,7 +110,7 @@ func TestBasketPostgres_DeleteBasketItem(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mock()
 
-			err := r.DeleteBasketItem(tt.input.itemId)
+			err := r.DeleteBrand(tt.input.id)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

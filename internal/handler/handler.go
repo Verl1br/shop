@@ -38,5 +38,11 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		basket.DELETE("/:id", h.deleteBasketItem)
 	}
 
+	brand := router.Group("/brand", h.userIdentity)
+	{
+		brand.POST("/", h.addBrand)
+		brand.DELETE("/:id", h.deleteBrand)
+	}
+
 	return router
 }

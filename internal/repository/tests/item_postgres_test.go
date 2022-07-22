@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dhevve/shop"
+	"github.com/dhevve/shop/internal/repository"
 	"github.com/stretchr/testify/assert"
 	sqlmock "github.com/zhashkevych/go-sqlxmock"
 )
@@ -16,7 +17,7 @@ func TestItemPostgres_CreateItem(t *testing.T) {
 	}
 	defer db.Close()
 
-	r := NewItemPostgres(db)
+	r := repository.NewItemPostgres(db)
 
 	type args struct {
 		item shop.Item
@@ -35,15 +36,16 @@ func TestItemPostgres_CreateItem(t *testing.T) {
 			name: "Ok",
 			input: args{
 				item: shop.Item{
-					Name:  "test name",
-					Price: 300,
+					Name:    "test name",
+					Price:   300,
+					BrandId: 1,
 				},
 			},
 			want: 1,
 			mock: func(args args, id int) {
 				rows := sqlmock.NewRows([]string{"id"}).AddRow(id)
 				mock.ExpectQuery("INSERT INTO items").
-					WithArgs(args.item.Name, args.item.Price).WillReturnRows(rows)
+					WithArgs(args.item.Name, args.item.Price, args.item.BrandId).WillReturnRows(rows)
 			},
 		},
 		{
@@ -52,13 +54,14 @@ func TestItemPostgres_CreateItem(t *testing.T) {
 
 				rows := sqlmock.NewRows([]string{"id"})
 				mock.ExpectQuery("INSERT INTO items").
-					WithArgs("", 300).WillReturnRows(rows)
+					WithArgs("", 300, 1).WillReturnRows(rows)
 
 			},
 			input: args{
 				item: shop.Item{
-					Name:  "",
-					Price: 300,
+					Name:    "",
+					Price:   300,
+					BrandId: 1,
 				},
 			},
 			wantErr: true,
@@ -70,8 +73,9 @@ func TestItemPostgres_CreateItem(t *testing.T) {
 			tt.mock(tt.input, tt.want)
 
 			item := shop.Item{
-				Name:  tt.input.item.Name,
-				Price: tt.input.item.Price,
+				Name:    tt.input.item.Name,
+				Price:   tt.input.item.Price,
+				BrandId: tt.input.item.BrandId,
 			}
 
 			got, err := r.CreateItem(item)
@@ -93,7 +97,7 @@ func TestItemPostgres_GetItems(t *testing.T) {
 	}
 	defer db.Close()
 
-	r := NewItemPostgres(db)
+	r := repository.NewItemPostgres(db)
 
 	tests := []struct {
 		name    string
@@ -104,17 +108,17 @@ func TestItemPostgres_GetItems(t *testing.T) {
 		{
 			name: "Ok",
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"id", "name", "price"}).
-					AddRow(1, "name1", 100).
-					AddRow(2, "name2", 100).
-					AddRow(3, "name3", 100)
+				rows := sqlmock.NewRows([]string{"id", "name", "price", "brandid"}).
+					AddRow(1, "name1", 100, 1).
+					AddRow(2, "name2", 100, 1).
+					AddRow(3, "name3", 100, 1)
 
 				mock.ExpectQuery("SELECT (.+) FROM items").WillReturnRows(rows)
 			},
 			want: []shop.Item{
-				{Id: 1, Name: "name1", Price: 100},
-				{Id: 2, Name: "name2", Price: 100},
-				{Id: 3, Name: "name3", Price: 100},
+				{Id: 1, Name: "name1", Price: 100, BrandId: 1},
+				{Id: 2, Name: "name2", Price: 100, BrandId: 1},
+				{Id: 3, Name: "name3", Price: 100, BrandId: 1},
 			},
 		},
 	}
@@ -142,7 +146,7 @@ func TestItemPostgres_GetByIdItem(t *testing.T) {
 	}
 	defer db.Close()
 
-	r := NewItemPostgres(db)
+	r := repository.NewItemPostgres(db)
 
 	type args struct {
 		id int
@@ -158,8 +162,8 @@ func TestItemPostgres_GetByIdItem(t *testing.T) {
 		{
 			name: "Ok",
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"id", "name", "price"}).
-					AddRow(1, "name1", 100)
+				rows := sqlmock.NewRows([]string{"id", "name", "price", "brandid"}).
+					AddRow(1, "name1", 100, 1)
 
 				mock.ExpectQuery("SELECT (.+) FROM items WHERE (.+)").
 					WithArgs(1).WillReturnRows(rows)
@@ -167,12 +171,12 @@ func TestItemPostgres_GetByIdItem(t *testing.T) {
 			input: args{
 				id: 1,
 			},
-			want: shop.Item{Id: 1, Name: "name1", Price: 100},
+			want: shop.Item{Id: 1, Name: "name1", Price: 100, BrandId: 1},
 		},
 		{
 			name: "Not Found",
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"id", "name", "price"})
+				rows := sqlmock.NewRows([]string{"id", "name", "price", "brand_id"})
 
 				mock.ExpectQuery("SELECT (.+) FROM items WHERE (.+)").
 					WithArgs(404).WillReturnRows(rows)
@@ -207,7 +211,7 @@ func TestItemPostgres_Delete(t *testing.T) {
 	}
 	defer db.Close()
 
-	r := NewItemPostgres(db)
+	r := repository.NewItemPostgres(db)
 
 	type args struct {
 		id int

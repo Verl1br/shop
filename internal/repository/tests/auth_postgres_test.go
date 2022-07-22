@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/dhevve/shop"
+	"github.com/dhevve/shop/internal/repository"
 	"github.com/stretchr/testify/assert"
 	sqlmock "github.com/zhashkevych/go-sqlxmock"
 )
@@ -15,7 +16,7 @@ func TestAuthPostgres_CreateUser(t *testing.T) {
 	}
 	defer db.Close()
 
-	r := NewAuthPostgres(db)
+	r := repository.NewAuthPostgres(db)
 
 	type args struct {
 		item shop.User

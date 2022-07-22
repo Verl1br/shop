@@ -20,8 +20,8 @@ func NewItemPostgres(db *sqlx.DB) *ItemPostgres {
 func (r *ItemPostgres) CreateItem(input shop.Item) (int, error) {
 	var id int
 
-	query := fmt.Sprintf("INSERT INTO %s (name, price) values ($1, $2) RETURNING id", "items")
-	row := r.db.QueryRow(query, input.Name, input.Price)
+	query := fmt.Sprintf("INSERT INTO %s (name, price, brand_id) values ($1, $2, $3) RETURNING id", "items")
+	row := r.db.QueryRow(query, input.Name, input.Price, input.BrandId)
 
 	if err := row.Scan(&id); err != nil {
 		return 0, err
@@ -32,7 +32,7 @@ func (r *ItemPostgres) CreateItem(input shop.Item) (int, error) {
 func (r *ItemPostgres) GetAllItems() ([]shop.Item, error) {
 	var items []shop.Item
 
-	query := fmt.Sprintf("SELECT id, name, price FROM %s", "items")
+	query := fmt.Sprintf("SELECT id, name, price, brand_id FROM %s", "items")
 	err := r.db.Select(&items, query)
 	return items, err
 }
@@ -40,7 +40,7 @@ func (r *ItemPostgres) GetAllItems() ([]shop.Item, error) {
 func (r *ItemPostgres) GetById(id int) (shop.Item, error) {
 	var item shop.Item
 
-	query := fmt.Sprintf("SELECT id, name, price FROM %s WHERE id = $1", "items")
+	query := fmt.Sprintf("SELECT id, name, price, brand_id FROM %s WHERE id = $1", "items")
 
 	err := r.db.Get(&item, query, id)
 	return item, err
@@ -66,6 +66,12 @@ func (r *ItemPostgres) UpdateItem(input shop.ItemUpdateInput, id int) error {
 	if input.Price != nil {
 		setValues = append(setValues, fmt.Sprintf("price=$%d", argId))
 		args = append(args, *input.Price)
+		argId++
+	}
+
+	if input.BrandId != nil {
+		setValues = append(setValues, fmt.Sprintf("brand_id=$%d", argId))
+		args = append(args, *input.BrandId)
 		argId++
 	}
 

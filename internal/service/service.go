@@ -25,10 +25,16 @@ type Basket interface {
 	GetBasketItems(userId int) ([]shop.Item, error)
 }
 
+type Brand interface {
+	AddBrand(item shop.Brand) (int, error)
+	DeleteBrand(id int) error
+}
+
 type Service struct {
 	Authorization
 	Item
 	Basket
+	Brand
 }
 
 func NewService(repo *repository.Repository) *Service {
@@ -36,5 +42,6 @@ func NewService(repo *repository.Repository) *Service {
 		Authorization: NewAuthService(repo),
 		Item:          NewItemService(repo),
 		Basket:        NewBasketService(repo),
+		Brand:         NewBrandService(repo),
 	}
 }
