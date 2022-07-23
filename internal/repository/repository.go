@@ -29,11 +29,19 @@ type Brand interface {
 	DeleteBrand(id int) error
 }
 
+type ItemInfo interface {
+	Create(item shop.ItemInfo) (int, error)
+	GetInfo(id int) (shop.ItemInfo, error)
+	DeleteInfo(id int) error
+	UpdateInfo(input shop.ItemInfoUpdateInput, id int) error
+}
+
 type Repository struct {
 	Authorization
 	Item
 	Basket
 	Brand
+	ItemInfo
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
@@ -42,5 +50,6 @@ func NewRepository(db *sqlx.DB) *Repository {
 		Item:          NewItemPostgres(db),
 		Basket:        NewBasketPostgres(db),
 		Brand:         NewBrandPostgres(db),
+		ItemInfo:      NewItemInfoPostgres(db),
 	}
 }

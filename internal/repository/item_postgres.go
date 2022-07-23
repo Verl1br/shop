@@ -32,7 +32,7 @@ func (r *ItemPostgres) CreateItem(input shop.Item) (int, error) {
 func (r *ItemPostgres) GetAllItems() ([]shop.Item, error) {
 	var items []shop.Item
 
-	query := fmt.Sprintf("SELECT id, name, price, brand_id FROM %s", "items")
+	query := fmt.Sprintf("SELECT name, price FROM %s", "items")
 	err := r.db.Select(&items, query)
 	return items, err
 }
@@ -40,7 +40,7 @@ func (r *ItemPostgres) GetAllItems() ([]shop.Item, error) {
 func (r *ItemPostgres) GetById(id int) (shop.Item, error) {
 	var item shop.Item
 
-	query := fmt.Sprintf("SELECT id, name, price, brand_id FROM %s WHERE id = $1", "items")
+	query := fmt.Sprintf("SELECT name, price FROM %s WHERE id = $1", "items")
 
 	err := r.db.Get(&item, query, id)
 	return item, err

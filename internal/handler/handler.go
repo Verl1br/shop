@@ -44,5 +44,13 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		brand.DELETE("/:id", h.deleteBrand)
 	}
 
+	info := router.Group("/item-info", h.userIdentity)
+	{
+		info.POST("/", h.createItemInfo)
+		info.GET("/:id", h.getItemInfo)
+		info.DELETE("/:id", h.deleteItemInfo)
+		info.PUT("/:id", h.updateItemInfo)
+	}
+
 	return router
 }
