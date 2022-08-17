@@ -12,11 +12,13 @@ func (h *Handler) createItemInfo(c *gin.Context) {
 	var item shop.ItemInfo
 
 	if err := c.BindJSON(&item); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	id, err := h.services.ItemInfo.Create(item)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -28,11 +30,13 @@ func (h *Handler) createItemInfo(c *gin.Context) {
 func (h *Handler) getItemInfo(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	item, err := h.services.ItemInfo.GetInfo(id)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -47,10 +51,11 @@ func (h *Handler) deleteItemInfo(c *gin.Context) {
 
 	err = h.services.ItemInfo.DeleteInfo(id)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, "ok")
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
 func (h *Handler) updateItemInfo(c *gin.Context) {
@@ -62,13 +67,15 @@ func (h *Handler) updateItemInfo(c *gin.Context) {
 	var input shop.ItemInfoUpdateInput
 
 	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err = h.services.ItemInfo.UpdateInfo(input, id)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, "ok")
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }

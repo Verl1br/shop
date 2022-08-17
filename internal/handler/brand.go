@@ -12,11 +12,13 @@ func (h *Handler) addBrand(c *gin.Context) {
 	var input shop.Brand
 
 	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	id, err := h.services.Brand.AddBrand(input)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -29,13 +31,15 @@ func (h *Handler) addBrand(c *gin.Context) {
 func (h *Handler) deleteBrand(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err = h.services.Brand.DeleteBrand(id)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, "ok")
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }

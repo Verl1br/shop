@@ -16,8 +16,8 @@ func (h *Handler) createItem(c *gin.Context) {
 	}
 
 	id, err := h.services.Item.CreateItem(input)
-
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -26,13 +26,10 @@ func (h *Handler) createItem(c *gin.Context) {
 	})
 }
 
-type getAllItemsResponse struct {
-	Data []shop.Item `json:"data"`
-}
-
 func (h *Handler) getAllItems(c *gin.Context) {
 	items, err := h.services.Item.GetAllItems()
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -44,11 +41,13 @@ func (h *Handler) getAllItems(c *gin.Context) {
 func (h *Handler) getItemById(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	item, err := h.services.Item.GetById(id)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -58,15 +57,17 @@ func (h *Handler) getItemById(c *gin.Context) {
 func (h *Handler) deleteItem(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err = h.services.Item.DeleteItem(id)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, "ok")
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
 func (h *Handler) updateItem(c *gin.Context) {
@@ -78,13 +79,15 @@ func (h *Handler) updateItem(c *gin.Context) {
 	var input shop.ItemUpdateInput
 
 	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err = h.services.Item.UpdateItem(input, id)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, "ok")
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
